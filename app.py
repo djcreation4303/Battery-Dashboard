@@ -47,7 +47,7 @@ if model_file is not None:
     model = joblib.load(model_file)
     
     # Feature Inputs (use normalized ones you used in training)
-    input_cols = ['Resistance_norm', 'Capacity_norm', 'Temp_norm', 'SEI_norm']
+    input_cols = ['Cycle_Number',  'Resistance_norm', 'Capacity_norm', 'Temp_norm', 'SEI_norm']
     
     if all(col in df.columns for col in input_cols):
         X = df[input_cols]
