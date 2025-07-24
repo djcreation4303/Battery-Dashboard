@@ -17,7 +17,7 @@ df = load_data()
 
 # Show Data Preview
 st.subheader("📄 Raw Data Preview")
-st.dataframe(df.head())
+st.dataframe(df.head(300))
 
 # Plot: SOH vs Cycle
 st.subheader("📈 SOH (%) vs Cycle_Number")
