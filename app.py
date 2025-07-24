@@ -20,16 +20,16 @@ st.subheader("📄 Raw Data Preview")
 st.dataframe(df.head())
 
 # Plot: SOH vs Cycle
-st.subheader("📈 SOH (%) vs Cycle")
+st.subheader("📈 SOH (%) vs Cycle_Number")
 fig1, ax1 = plt.subplots()
-sns.lineplot(data=df, x="Cycle", y="SOH (%)", ax=ax1)
+sns.lineplot(data=df, x="Cycle_Number", y="SOH (%)", ax=ax1)
 st.pyplot(fig1)
 
 # Plot: CSI Score vs Cycle
-if "CSI_Score" in df.columns:
-    st.subheader("📊 CSI Score vs Cycle")
+if "CSI" in df.columns:
+    st.subheader("📊 CSI vs Cycle")
     fig2, ax2 = plt.subplots()
-    sns.lineplot(data=df, x="Cycle", y="CSI_Score", ax=ax2)
+    sns.lineplot(data=df, x="Cycle", y="CSI", ax=ax2)
     st.pyplot(fig2)
 
 # Category Count Plot
