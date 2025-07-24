@@ -54,12 +54,12 @@ if model_file is not None:
         st.success("✅ Predicting SOH based on uploaded model")
         predictions = model.predict(X)
         df['Predicted_SOH'] = predictions
-        st.write(df[['Cycle', 'Predicted_SOH']].head())
+        st.write(df[['Cycle_Number', 'Predicted_SOH']].head())
 
         # Plot: Predicted SOH vs Cycle
         st.subheader(" Predicted SOH vs Cycle")
         fig4, ax4 = plt.subplots()
-        sns.lineplot(x=df["Cycle"], y=df["Predicted_SOH"], ax=ax4)
+        sns.lineplot(x=df["Cycle_Number"], y=df["Predicted_SOH"], ax=ax4)
         st.pyplot(fig4)
     else:
         st.warning("⚠️ Missing normalized input columns in your data.")
