@@ -13,6 +13,7 @@ st.title("🔋 Battery Dashboard")
 def load_data():
     return pd.read_csv("Battery_Ageing_Master_Day5.csv")
 
+
 df = load_data()
 
 # 2. Load trained model
