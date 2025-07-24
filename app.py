@@ -11,7 +11,7 @@ st.title("🔋 Battery Dashboard")
 # 1. Load data
 @st.cache_data
 def load_data():
-    return pd.read_csv("Battery_Ageing_Master_Day5.csv")
+    return pd.read_csv("Battery_Ageing_With_CSI_Final.csv")
 
 
 df = load_data()
