@@ -1,69 +1,79 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 import seaborn as sns
+import matplotlib.pyplot as plt
 import joblib
+import os
 
-# Title
-st.title("🔋 Battery Health Dashboard")
-st.markdown("Visualize CSI Score, SOH Prediction, and Degradation Trends")
+st.set_page_config(layout="wide")
+st.title("🔋 Battery Dashboard")
 
-# Load Data
+# 1. Load data
 @st.cache_data
 def load_data():
-    return pd.read_csv("Battery_Ageing_With_CSI_Final.csv")
+    return pd.read_csv("Battery_Ageing_Master_Day5.csv")
 
 df = load_data()
 
-# Show Data Preview
-st.subheader("📄 Raw Data Preview")
-st.dataframe(df.head(300))
-
-# Plot: SOH vs Cycle
-st.subheader("📈 SOH (%) vs Cycle_Number")
-fig1, ax1 = plt.subplots()
-sns.lineplot(data=df, x="Cycle_Number", y="SOH (%)", ax=ax1)
-st.pyplot(fig1)
-
-# Plot: CSI Score vs Cycle
-if "CSI" in df.columns:
-    st.subheader("📊 CSI vs Cycle_Number")
-    fig2, ax2 = plt.subplots()
-    sns.lineplot(data=df, x="Cycle_Number", y="CSI", ax=ax2)
-    st.pyplot(fig2)
-
-# Category Count Plot
-if "Category" in df.columns:
-    st.subheader("🧠 CSI Category Count")
-    fig3, ax3 = plt.subplots()
-    sns.countplot(data=df, x="Category", ax=ax3)
-    st.pyplot(fig3)
-
-# Upload Trained Model to Predict SOH
-st.subheader("📤 Upload Trained SOH Model")
-model_file = st.file_uploader("Upload .pkl model", type=["pkl"])
-
-if model_file is not None:
-    model = joblib.load(model_file)
-    
-    # Feature Inputs (use normalized ones you used in training)
-    input_cols = ['Cycle_Number',  'Resistance_norm', 'Capacity_norm', 'Temp_norm', 'SEI_norm']
-    
-    if all(col in df.columns for col in input_cols):
-        X = df[input_cols]
-        st.success("✅ Predicting SOH based on uploaded model")
-        predictions = model.predict(X)
-        df['Predicted_SOH'] = predictions
-        st.write(df[['Cycle_Number', 'Predicted_SOH']].head())
-
-        # Plot: Predicted SOH vs Cycle
-        st.subheader(" Predicted SOH vs Cycle")
-        fig4, ax4 = plt.subplots()
-        sns.lineplot(x=df["Cycle_Number"], y=df["Predicted_SOH"], ax=ax4)
-        st.pyplot(fig4)
+# 2. Load trained model
+@st.cache_resource
+def load_model():
+    model_path = "soh_model.pkl"
+    if os.path.exists(model_path):
+        return joblib.load(model_path)
     else:
-        st.warning("⚠️ Missing normalized input columns in your data.")
+        st.error("❌ Model file 'soh_model.pkl' not found in directory!")
+        return None
 
-# Footer
-st.markdown("---")
-st.caption("Made with  by Team Voltcrafters")
+model = load_model()
+
+# 3. Metrics
+st.subheader("📊 Battery Metrics")
+col1, col2, col3 = st.columns(3)
+col1.metric("🔁 Cycles", df["Cycle"].max())
+col2.metric("🔋 Avg SOH (%)", f"{df['SOH (%)'].mean():.2f}")
+col3.metric("⚡ Avg Voltage", f"{df['Voltage'].mean():.2f} V")
+
+# 4. Plots
+st.subheader("📈 Battery Trends")
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 5))
+sns.lineplot(data=df, x="Cycle", y="SOH (%)", ax=ax1)
+ax1.set_title("SOH (%) vs Cycle")
+ax1.set_ylabel("SOH (%)")
+ax1.set_xlabel("Cycle")
+
+sns.lineplot(data=df, x="Cycle", y="CSI", ax=ax2)
+ax2.set_title("CSI vs Cycle")
+ax2.set_ylabel("CSI")
+ax2.set_xlabel("Cycle")
+
+st.pyplot(fig)
+
+# 5. SOH Prediction Based on User Input
+st.subheader("🧠 Predict SOH Based on Input")
+
+if model:
+    with st.form("predict_form"):
+        col1, col2 = st.columns(2)
+        with col1:
+            cycle = st.number_input("Cycle Number", min_value=0, step=1)
+            resistance = st.number_input("Resistance_norm", min_value=0.0, step=0.01)
+            capacity = st.number_input("Capacity_norm", min_value=0.0, step=0.01)
+        with col2:
+            temp = st.number_input("Temp_norm", min_value=0.0, step=0.01)
+            voltage = st.number_input("Voltage_norm", min_value=0.0, step=0.01)
+
+        submitted = st.form_submit_button("Predict SOH")
+
+        if submitted:
+            input_df = pd.DataFrame([{
+                "Resistance_norm": resistance,
+                "Capacity_norm": capacity,
+                "Temp_norm": temp,
+                "Voltage_norm": voltage
+            }])
+
+            prediction = model.predict(input_df)[0]
+            st.success(f"🔮 Predicted SOH at Cycle {cycle}: **{prediction:.2f}%**")
+
