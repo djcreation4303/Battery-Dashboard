@@ -33,7 +33,7 @@ st.subheader("📊 Battery Metrics")
 col1, col2, col3 = st.columns(3)
 col1.metric("🔁 Cycles", df["Cycle_Number"].max())
 col2.metric("🔋 Avg SOH (%)", f"{df['SOH (%)'].mean():.2f}")
-col3.metric("⚡ Avg Voltage", f"{df['Voltage'].mean():.2f} V")
+col3.metric("⚡ Avg Voltage", f"{df['Voltage (V)'].mean():.2f} V")
 
 # 4. Plots
 st.subheader("📈 Battery Trends")
