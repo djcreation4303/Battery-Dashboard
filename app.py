@@ -31,7 +31,7 @@ model = load_model()
 # 3. Metrics
 st.subheader("📊 Battery Metrics")
 col1, col2, col3 = st.columns(3)
-col1.metric("🔁 Cycles", df["Cycle"].max())
+col1.metric("🔁 Cycles", df["Cycle_Number"].max())
 col2.metric("🔋 Avg SOH (%)", f"{df['SOH (%)'].mean():.2f}")
 col3.metric("⚡ Avg Voltage", f"{df['Voltage'].mean():.2f} V")
 
@@ -39,15 +39,15 @@ col3.metric("⚡ Avg Voltage", f"{df['Voltage'].mean():.2f} V")
 st.subheader("📈 Battery Trends")
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 5))
-sns.lineplot(data=df, x="Cycle", y="SOH (%)", ax=ax1)
-ax1.set_title("SOH (%) vs Cycle")
+sns.lineplot(data=df, x="Cycle_Number", y="SOH (%)", ax=ax1)
+ax1.set_title("SOH (%) vs Cycle_Number")
 ax1.set_ylabel("SOH (%)")
-ax1.set_xlabel("Cycle")
+ax1.set_xlabel("Cycle_Number")
 
-sns.lineplot(data=df, x="Cycle", y="CSI", ax=ax2)
-ax2.set_title("CSI vs Cycle")
+sns.lineplot(data=df, x="Cycle_Number", y="CSI", ax=ax2)
+ax2.set_title("CSI vs Cycle_Number")
 ax2.set_ylabel("CSI")
-ax2.set_xlabel("Cycle")
+ax2.set_xlabel("Cycle_Number")
 
 st.pyplot(fig)
 
