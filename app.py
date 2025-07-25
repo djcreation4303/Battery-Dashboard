@@ -1,80 +1,95 @@
 import streamlit as st
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
+import numpy as np
 import joblib
-import os
 
-st.set_page_config(layout="wide")
-st.title("🔋 Battery Dashboard")
+# ------------ Load Models ------------
+sei_model = joblib.load("sei_model.pkl")
+ir_model = joblib.load("ir_model.pkl")
+soh_model = joblib.load("soh_model.pkl")
 
-# 1. Load data
-@st.cache_data
-def load_data():
-    return pd.read_csv("Battery_Ageing_With_CSI_Final.csv")
+# ------------ Page Settings ------------
+st.set_page_config(page_title="Battery Safety Checker", layout="centered")
+st.title("🔋 Battery Safety Check using CSI")
+st.write("Enter battery usage details to predict SEI, IR, SOH, and compute CSI with safety category.")
 
+# ------------ User Input ------------
+st.header("📥 Battery Input Parameters")
 
-df = load_data()
+min_voltage = st.number_input("Minimum Voltage (V)", value=2.8, step=0.01)
+max_voltage = st.number_input("Maximum Voltage (V)", value=4.2, step=0.01)
+avg_voltage = st.number_input("Average Voltage (V)", value=3.7, step=0.01)
+temperature = st.number_input("Battery Temperature (°C)", value=30.0, step=0.5)
+ambient_temp = st.number_input("Ambient Temperature (°C)", value=25.0, step=0.5)
+charge_cycles = st.number_input("Charge Cycles Completed", value=300, step=1)
 
-# 2. Load trained model
-@st.cache_resource
-def load_model():
-    model_path = "soh_model.pkl"
-    if os.path.exists(model_path):
-        return joblib.load(model_path)
+charging_behavior = st.selectbox("Charging Behavior", ["Normal", "Fast", "Overnight"])
+chemistry_type = st.selectbox("Chemistry Type", ["LFP", "NMC"])
+
+# ------------ Feature Encoding ------------
+charging_map = {"Normal": 0, "Fast": 1, "Overnight": 2}
+chemistry_map = {"LFP": 0, "NMC": 1}
+
+input_features = np.array([[
+    min_voltage,
+    max_voltage,
+    avg_voltage,
+    temperature,
+    ambient_temp,
+    charge_cycles,
+    charging_map[charging_behavior],
+    chemistry_map[chemistry_type]
+]])
+
+# ------------ Predictions ------------
+if st.button("🔍 Predict Safety"):
+
+    # Predict SEI and IR
+    sei = sei_model.predict(input_features)[0]
+    ir = ir_model.predict(input_features)[0]
+
+    # Now predict SOH using SEI, IR + selected features
+    soh_input = np.hstack((input_features, [sei, ir]))
+    soh = soh_model.predict([soh_input])[0]
+
+    # Calculate CSI
+    csi = soh / (sei * ir) if sei * ir != 0 else 0
+
+    # Categorize CSI
+    if csi > 0.9:
+        category = "✅ Safe"
+    elif csi > 0.7:
+        category = "⚠️ Moderate"
+    elif csi > 0.5:
+        category = "🟠 Warning"
     else:
-        st.error("❌ Model file 'soh_model.pkl' not found in directory!")
-        return None
+        category = "🔴 Critical"
 
-model = load_model()
+    # ------------ Output ------------
+    st.subheader("🧠 Model Predictions")
+    st.metric("Predicted SEI", f"{sei:.3f}")
+    st.metric("Predicted IR (mΩ)", f"{ir:.2f}")
+    st.metric("Predicted SOH (%)", f"{soh:.2f}")
+    st.metric("CSI Score", f"{csi:.4f}")
+    st.metric("Safety Category", category)
 
-# 3. Metrics
-st.subheader("📊 Battery Metrics")
-col1, col2, col3 = st.columns(3)
-col1.metric("🔁 Cycles", df["Cycle_Number"].max())
-col2.metric("🔋 Avg SOH (%)", f"{df['SOH (%)'].mean():.2f}")
-col3.metric("⚡ Avg Voltage", f"{df['Voltage (V)'].mean():.2f} V")
+    with st.expander("📊 Input Summary"):
+        st.write({
+            "Min Voltage": min_voltage,
+            "Max Voltage": max_voltage,
+            "Avg Voltage": avg_voltage,
+            "Battery Temp": temperature,
+            "Ambient Temp": ambient_temp,
+            "Charge Cycles": charge_cycles,
+            "Charging": charging_behavior,
+            "Chemistry": chemistry_type,
+            "SEI": round(sei, 3),
+            "IR": round(ir, 2),
+            "SOH": round(soh, 2),
+            "CSI": round(csi, 4),
+            "Category": category
+        })
 
-# 4. Plots
-st.subheader("📈 Battery Trends")
 
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 5))
-sns.lineplot(data=df, x="Cycle_Number", y="SOH (%)", ax=ax1)
-ax1.set_title("SOH (%) vs Cycle_Number")
-ax1.set_ylabel("SOH (%)")
-ax1.set_xlabel("Cycle_Number")
 
-sns.lineplot(data=df, x="Cycle_Number", y="CSI", ax=ax2)
-ax2.set_title("CSI vs Cycle_Number")
-ax2.set_ylabel("CSI")
-ax2.set_xlabel("Cycle_Number")
 
-st.pyplot(fig)
-
-# 5. SOH Prediction Based on User Input
-st.subheader("🧠 Predict SOH Based on Input")
-
-if model:
-    with st.form("predict_form"):
-        col1, col2 = st.columns(2)
-        with col1:
-            cycle = st.number_input("Cycle Number", min_value=0, step=1)
-            resistance = st.number_input("Resistance_norm", min_value=0.0, step=0.01)
-            capacity = st.number_input("Capacity_norm", min_value=0.0, step=0.01)
-        with col2:
-            temp = st.number_input("Temp_norm", min_value=0.0, step=0.01)
-            voltage = st.number_input("Voltage_norm", min_value=0.0, step=0.01)
-
-        submitted = st.form_submit_button("Predict SOH")
-
-        if submitted:
-            input_df = pd.DataFrame([{
-                "Resistance_norm": resistance,
-                "Capacity_norm": capacity,
-                "Temp_norm": temp,
-                "Voltage_norm": voltage
-            }])
-
-            prediction = model.predict(input_df)[0]
-            st.success(f"🔮 Predicted SOH at Cycle {cycle}: **{prediction:.2f}%**")
-
+              
