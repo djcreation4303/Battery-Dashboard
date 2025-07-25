@@ -73,16 +73,18 @@ if st.button("🔍 Predict Battery Health & Safety"):
         pd.DataFrame([[sei_pred, ir_pred]], columns=["SEI", "IR"])
     )[0]
 
-    if sei_pred <= 0.4:
-    # Very good SEI — reward positively
-    sei_norm = 1
-elif sei_pred <= 0.7:
-    # Medium SEI — scale down
-    sei_norm = 1 - (sei - 0.4) / (0.7 - 0.4)
-else:
-    # Bad SEI — heavy penalty
-    sei_norm = 0.2  # minimum safety score for SEI
+    if sei <= 0.4:
+        # Very good SEI — reward positively
+        sei_score = 1
+    elif sei <= 0.7:
+        # Medium SEI — scale down
+        sei_score = 1 - (sei - 0.4) / (0.7 - 0.4)
+    else:
+         # Bad SEI — heavy penalty
+        sei_score = 0.2  # minimum safety score for SEI
 
+        
+   
 # Normalize IR and SOH
 ir_norm = (122 - ir) / (122 - 63)
 soh_norm = (soh - 50) / (80 - 50)
