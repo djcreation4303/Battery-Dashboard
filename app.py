@@ -55,16 +55,15 @@ input_features = pd.DataFrame([[
     "chemistry_type_encoded", "charging_behavior_encoded"
 ])
 
-print("Type of sei_model:", type(sei_model))
-print("Type of ir_model:", type(ir_model))
-print("Type of soh_model:", type(soh_model))
 
 # Prediction logic
 if st.button("🔍 Predict Battery Health & Safety"):
-    sei = sei_model.predict(input_features)[0]
-    ir = ir_model.predict(input_features)[0]
-    soh = soh_model.predict(pd.DataFrame([[sei, ir]], columns=["SEI", "IR"]))[0]
+    sei_pred = sei_model.predict(input_features)[0]
+ir_pred = ir_model.predict(input_features)[0]
 
+soh_pred = soh_model.predict(
+    pd.DataFrame([[sei_pred, ir_pred]], columns=["SEI", "IR"])
+)[0]
     # Calculate CSI
     csi = ((1 - sei) * 0.4 + (110 - ir) / 110 * 0.3 + soh / 100 * 0.3)
 
