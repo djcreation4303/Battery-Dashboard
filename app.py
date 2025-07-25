@@ -73,10 +73,10 @@ if st.button("🔍 Predict Battery Health & Safety"):
         pd.DataFrame([[sei_pred, ir_pred]], columns=["SEI", "IR"])
     )[0]
 
-    if sei <= 0.4:
+    if sei_pred <= 0.4:
         # Very good SEI — reward positively
         sei_score = 1
-    elif sei <= 0.7:
+    elif sei_pred <= 0.7:
         # Medium SEI — scale down
         sei_score = 1 - (sei - 0.4) / (0.7 - 0.4)
     else:
@@ -86,8 +86,8 @@ if st.button("🔍 Predict Battery Health & Safety"):
         
    
 # Normalize IR and SOH
-    ir_norm = (122 - ir) / (122 - 63)
-    soh_norm = (soh - 50) / (80 - 50)
+    ir_norm = (122 - ir_pred) / (122 - 63)
+    soh_norm = (soh_pred - 50) / (100 - 50)
 
 # Final CSI (weighted)
     csi = 0.35 * sei_score + 0.30 * ir_norm + 0.35 * soh_norm
