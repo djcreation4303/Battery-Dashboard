@@ -51,8 +51,7 @@ input_features = pd.DataFrame([[
 ]], columns=[
     "cycle_count", "charge_rate", "discharge_rate",
     "depth_of_discharge", "storage_time_months", "battery_age_months",
-    "ambient_temperature", "current_voltage",
-    "chemistry_type_encoded", "charging_behavior_encoded"
+    "chemistry_type_encoded", "charging_behavior_encoded" , "current_voltage" ,"ambient_temperature"
 ])
 
 # Prediction logic
