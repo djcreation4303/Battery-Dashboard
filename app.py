@@ -86,11 +86,11 @@ if st.button("🔍 Predict Battery Health & Safety"):
         
    
 # Normalize IR and SOH
-ir_norm = (122 - ir) / (122 - 63)
-soh_norm = (soh - 50) / (80 - 50)
+    ir_norm = (122 - ir) / (122 - 63)
+    soh_norm = (soh - 50) / (80 - 50)
 
 # Final CSI (weighted)
-csi = 0.35 * sei_score + 0.30 * ir_norm + 0.35 * soh_norm
+    csi = 0.35 * sei_score + 0.30 * ir_norm + 0.35 * soh_norm
     
     # Calculate CSI
     #csi = ((1 - sei_pred) * 0.4 + (122 - ir_pred) / 110 * 0.3 + soh_pred / 100 * 0.3)
