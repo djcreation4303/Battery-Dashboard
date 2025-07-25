@@ -3,80 +3,45 @@ import pandas as pd
 import numpy as np
 import pickle
 
-# Load trained models
+# Load models
 sei_model = pickle.load(open("sei_model.pkl", "rb"))
 ir_model = pickle.load(open("ir_model.pkl", "rb"))
 soh_model = pickle.load(open("soh_model.pkl", "rb"))
 
-st.set_page_config(page_title="Battery Safety Predictor", layout="centered")
-st.title("🔋 Lithium-ion Battery Safety & Health Prediction")
+# User inputs
+cycle_count = st.number_input("Cycle Count", min_value=0)
+avg_temp = st.number_input("Ambient Temperature (°C)")
+charge_rate = st.number_input("Charge Rate (C)")
+discharge_rate = st.number_input("Discharge Rate (C)")
+depth_of_discharge = st.number_input("Depth of Discharge (%)")
+storage_time = st.number_input("Storage Time (months)")
+battery_age = st.number_input("Battery Age (months)")
+current_voltage = st.number_input("Current Voltage (V)")
 
-st.markdown("Enter the battery details below. The app will predict SEI, IR, SOH and calculate CSI with safety categorization.")
-
-# Maps for encoding
-chemistry_map = {'LFP': 0, 'NMC': 1}
+# Dropdowns
 charging_map = {'normal': 0, 'fast': 1, 'overnight': 2}
+charging_behavior = st.selectbox("Charging Behavior", list(charging_map.keys()))
+charging_behavior_encoded = charging_map[charging_behavior]
 
-# User Inputs
-st.header("📥 User Inputs")
+chemistry_map = {'NMC': 0, 'LFP': 1}
+chemistry_type = st.selectbox("Chemistry Type", list(chemistry_map.keys()))
+chemistry_type_encoded = chemistry_map[chemistry_type]
 
-cycle_count = st.number_input("Cycle Count", min_value=0, value=200)
-charge_rate = st.number_input("Charge Rate (C)", min_value=0.0, value=1.0)
-discharge_rate = st.number_input("Discharge Rate (C)", min_value=0.0, value=1.0)
-depth_of_discharge = st.slider("Depth of Discharge (%)", 0, 100, 80)
-storage_time = st.number_input("Storage Time (months)", min_value=0, value=6)
-battery_age = st.number_input("Battery Age (months)", min_value=0, value=12)
-ambient_temp = st.slider("Ambient Temperature (°C)", 15, 45, 25)
-current_voltage = st.slider("Current Voltage (V)", 3.2, 4.2, 3.7)
-
-charging_input = st.selectbox("Charging Behavior", list(charging_map.keys()))
-chemistry_input = st.selectbox("Chemistry Type", list(chemistry_map.keys()))
-
-# Encode categorical inputs
-charging_behavior_encoded = charging_map[charging_input]
-chemistry_type_encoded = chemistry_map[chemistry_input]
-
-# Create input DataFrame
-input_features = pd.DataFrame([[
-    cycle_count,
-    charge_rate,
-    discharge_rate,
-    depth_of_discharge,
-    storage_time,
-    battery_age,
-    ambient_temp,
-    current_voltage,
-    chemistry_type_encoded,
-    charging_behavior_encoded
+# Final feature vector (must match training)
+input_data = pd.DataFrame([[
+    cycle_count, avg_temp, charge_rate, discharge_rate,
+    depth_of_discharge, storage_time, battery_age,
+    chemistry_type_encoded, charging_behavior_encoded,
+    current_voltage
 ]], columns=[
-    "cycle_count", "charge_rate", "discharge_rate",
-    "depth_of_discharge", "storage_time_months", "battery_age_months",
-    "chemistry_type_encoded", "charging_behavior_encoded" , "current_voltage" ,"ambient_temperature"
+    'cycle_count', 'ambient_temp', 'charge_rate', 'discharge_rate',
+    'depth_of_discharge', 'storage_time_months', 'battery_age_months',
+    'chemistry_type_encoded', 'charging_behavior_encoded', 'current_voltage'
 ])
 
-# Prediction logic
-if st.button("🔍 Predict Battery Health & Safety"):
-    sei = sei_model.predict(input_features)[0]
-    ir = ir_model.predict(input_features)[0]
-    soh = soh_model.predict(pd.DataFrame([[sei, ir]], columns=["SEI", "IR"]))[0]
+# Predict
+sei = sei_model.predict(input_data)[0]
+ir = ir_model.predict(input_data)[0]
 
-    # Calculate CSI
-    csi = ((1 - sei) * 0.4 + (110 - ir) / 110 * 0.3 + soh / 100 * 0.3)
+# Then use sei, ir to get SOH and CSI
 
-    # Categorize
-    if csi >= 0.8:
-        category = "Safe ✅"
-    elif csi >= 0.6:
-        category = "Moderate ⚠️"
-    elif csi >= 0.4:
-        category = "Warning ⚠️"
-    else:
-        category = "Critical ❌"
-
-    # Display
-    st.header("📊 Results")
-    st.markdown(f"**Predicted SEI:** `{sei:.3f}`")
-    st.markdown(f"**Predicted IR:** `{ir:.2f} mΩ`")
-    st.markdown(f"**Predicted SOH:** `{soh:.2f} %`")
-    st.markdown(f"**Calculated CSI:** `{csi:.3f}`")
-    st.markdown(f"### 🛡️ Safety Category: **{category}**")
