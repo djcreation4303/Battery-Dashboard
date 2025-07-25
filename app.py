@@ -26,7 +26,7 @@ discharge_rate = st.number_input("Discharge Rate (C)", min_value=0.0, value=1.0)
 depth_of_discharge = st.slider("Depth of Discharge (%)", 0, 100, 80)
 storage_time = st.number_input("Storage Time (months)", min_value=0, value=6)
 battery_age = st.number_input("Battery Age (months)", min_value=0, value=12)
-ambient_temp = st.slider("Ambient Temperature (°C)", 15, 45, 25)
+ambient_temperature = st.slider("Ambient Temperature (°C)", 15, 45, 25)
 current_voltage = st.slider("Current Voltage (V)", 3.2, 4.2, 3.7)
 
 charging_input = st.selectbox("Charging Behavior", list(charging_map.keys()))
@@ -44,7 +44,7 @@ input_features = pd.DataFrame([[
     depth_of_discharge,
     storage_time,
     battery_age,
-    ambient_temp,
+    ambient_temperature,
     current_voltage,
     chemistry_type_encoded,
     charging_behavior_encoded
