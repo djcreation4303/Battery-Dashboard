@@ -73,7 +73,7 @@ if st.button("🔍 Predict Battery Health & Safety"):
         pd.DataFrame([[sei_pred, ir_pred]], columns=["SEI", "IR"])
     )[0]
 
-    st.write("SEI:", sei_pred
+    st.write("SEI:", sei_pred)
     st.write("IR:", ir_pred)
     st.write("SOH:", soh_pred)
 
