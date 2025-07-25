@@ -65,7 +65,7 @@ soh_pred = soh_model.predict(
     pd.DataFrame([[sei_pred, ir_pred]], columns=["SEI", "IR"])
 )[0]
     # Calculate CSI
-    csi = ((1 - sei) * 0.4 + (110 - ir) / 110 * 0.3 + soh / 100 * 0.3)
+csi = ((1 - sei) * 0.4 + (110 - ir) / 110 * 0.3 + soh / 100 * 0.3)
 
     # Categorize
     if csi >= 0.8:
