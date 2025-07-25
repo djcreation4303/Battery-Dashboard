@@ -78,8 +78,9 @@ if st.button("🔍 Predict Battery Health & Safety"):
     soh_norm = soh_pred / 100
 
     # Calculate CSI
-   # csi = ((1 - sei_pred) * 0.4 + (110 - ir_pred) / 110 * 0.3 + soh_pred / 100 * 0.3)
-    csi = 0.3*sei_norm + 0.3*ir_norm + 0.4*soh_norm
+    #csi = ((1 - sei_pred) * 0.4 + (110 - ir_pred) / 110 * 0.3 + soh_pred / 100 * 0.3)
+    csi = ((1 - sei_pred) * 0.3 + (110 - ir_pred) / (110-40) * 0.3 + soh_pred / 100 * 0.4)
+    #csi = 0.3*sei_norm + 0.3*ir_norm + 0.4*soh_norm
     
     
 
