@@ -15,27 +15,23 @@ st.write("Enter battery usage details to predict SEI, IR, SOH, and compute CSI w
 # ------------ User Input ------------
 st.header("📥 Battery Input Parameters")
 
-min_voltage = st.number_input("Minimum Voltage (V)", value=2.8, step=0.01)
-max_voltage = st.number_input("Maximum Voltage (V)", value=4.2, step=0.01)
-avg_voltage = st.number_input("Average Voltage (V)", value=3.7, step=0.01)
-temperature = st.number_input("Battery Temperature (°C)", value=30.0, step=0.5)
-ambient_temp = st.number_input("Ambient Temperature (°C)", value=25.0, step=0.5)
-charge_cycles = st.number_input("Charge Cycles Completed", value=300, step=1)
 
-charging_behavior = st.selectbox("Charging Behavior", ["Normal", "Fast", "Overnight"])
-chemistry_type = st.selectbox("Chemistry Type", ["LFP", "NMC"])
+current_voltage = st.number_input("Current Voltage (V)", value=3.7, step=0.01)
+
+ambient_temp = st.number_input("Ambient Temperature (°C)", value=25.0, step=0.5)
+cycle_count = st.number_input("Charge Cycles Completed", value=300, step=1)
+
+charging_behavior_encoded = st.selectbox("Charging Behavior", ["Normal", "Fast", "Overnight"])
+chemistry_type_encoded = st.selectbox("Chemistry Type", ["LFP", "NMC"])
 
 # ------------ Feature Encoding ------------
 charging_map = {"Normal": 0, "Fast": 1, "Overnight": 2}
 chemistry_map = {"LFP": 0, "NMC": 1}
 
 input_features = np.array([[
-    min_voltage,
-    max_voltage,
-    avg_voltage,
-    temperature,
+    current_voltage,
     ambient_temp,
-    charge_cycles,
+    cycle_count,
     charging_map[charging_behavior],
     chemistry_map[chemistry_type]
 ]])
