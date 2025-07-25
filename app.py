@@ -55,17 +55,17 @@ input_features = pd.DataFrame([[
     "chemistry_type_encoded", "charging_behavior_encoded"
 ])
 
-
 # Prediction logic
 if st.button("🔍 Predict Battery Health & Safety"):
     sei_pred = sei_model.predict(input_features)[0]
-ir_pred = ir_model.predict(input_features)[0]
+    ir_pred = ir_model.predict(input_features)[0]
 
-soh_pred = soh_model.predict(
-    pd.DataFrame([[sei_pred, ir_pred]], columns=["SEI", "IR"])
-)[0]
+    soh_pred = soh_model.predict(
+        pd.DataFrame([[sei_pred, ir_pred]], columns=["SEI", "IR"])
+    )[0]
+
     # Calculate CSI
-csi = ((1 - sei) * 0.4 + (110 - ir) / 110 * 0.3 + soh / 100 * 0.3)
+    csi = ((1 - sei_pred) * 0.4 + (110 - ir_pred) / 110 * 0.3 + soh_pred / 100 * 0.3)
 
     # Categorize
     if csi >= 0.8:
@@ -79,8 +79,8 @@ csi = ((1 - sei) * 0.4 + (110 - ir) / 110 * 0.3 + soh / 100 * 0.3)
 
     # Display
     st.header("📊 Results")
-    st.markdown(f"**Predicted SEI:** `{sei:.3f}`")
-    st.markdown(f"**Predicted IR:** `{ir:.2f} mΩ`")
-    st.markdown(f"**Predicted SOH:** `{soh:.2f} %`")
+    st.markdown(f"**Predicted SEI:** `{sei_pred:.3f}`")
+    st.markdown(f"**Predicted IR:** `{ir_pred:.2f} mΩ`")
+    st.markdown(f"**Predicted SOH:** `{soh_pred:.2f} %`")
     st.markdown(f"**Calculated CSI:** `{csi:.3f}`")
     st.markdown(f"### 🛡️ Safety Category: **{category}**")
