@@ -63,6 +63,9 @@ input_features = pd.DataFrame([[
 
 # Prediction logic
 if st.button("🔍 Predict Battery Health & Safety"):
+    input_features = input_features[sei_model.feature_names_in_]
+
+
     sei_pred = sei_model.predict(input_features)[0]
     ir_pred = ir_model.predict(input_features)[0]
 
