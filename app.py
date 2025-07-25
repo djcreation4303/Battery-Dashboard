@@ -73,14 +73,13 @@ if st.button("🔍 Predict Battery Health & Safety"):
         pd.DataFrame([[sei_pred, ir_pred]], columns=["SEI", "IR"])
     )[0]
 
-    st.write("SEI:", sei_pred)
-    st.write("IR:", ir_pred)
-    st.write("SOH:", soh_pred)
-    
+    sei_norm = sei_pred
+    ir_norm = (110-ir_pred)/(110-40)
+    soh_norm = soh_pred / 100
 
     # Calculate CSI
-    csi = ((1 - sei_pred) * 0.4 + (110 - ir_pred) / 110 * 0.3 + soh_pred / 100 * 0.3)
-    st.write("CSI:", csi)
+   # csi = ((1 - sei_pred) * 0.4 + (110 - ir_pred) / 110 * 0.3 + soh_pred / 100 * 0.3)
+     csi = 0.3*sei_norm + 0.3*ir_norm + 0.4*soh_norm
     
     
 
