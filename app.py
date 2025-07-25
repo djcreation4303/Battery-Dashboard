@@ -76,9 +76,13 @@ if st.button("🔍 Predict Battery Health & Safety"):
     st.write("SEI:", sei_pred)
     st.write("IR:", ir_pred)
     st.write("SOH:", soh_pred)
+    
 
     # Calculate CSI
     csi = ((1 - sei_pred) * 0.4 + (110 - ir_pred) / 110 * 0.3 + soh_pred / 100 * 0.3)
+    st.write("SOH:", soh_pred)
+    
+    
 
     # Categorize
     if csi >= 0.8:
