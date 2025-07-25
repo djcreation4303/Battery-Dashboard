@@ -55,6 +55,10 @@ input_features = pd.DataFrame([[
     "chemistry_type_encoded", "charging_behavior_encoded"
 ])
 
+print("Type of sei_model:", type(sei_model))
+print("Type of ir_model:", type(ir_model))
+print("Type of soh_model:", type(soh_model))
+
 # Prediction logic
 if st.button("🔍 Predict Battery Health & Safety"):
     sei = sei_model.predict(input_features)[0]
