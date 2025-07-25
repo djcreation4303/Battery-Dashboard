@@ -1,12 +1,12 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import pickle
+import joblib  # ← Use joblib instead of pickle
 
-# Load trained models
-sei_model = pickle.load(open("sei_model.pkl", "rb"))
-ir_model = pickle.load(open("ir_model.pkl", "rb"))
-soh_model = pickle.load(open("soh_model.pkl", "rb"))
+# Load trained models using joblib
+sei_model = joblib.load("sei_model.pkl")
+ir_model = joblib.load("ir_model.pkl")
+soh_model = joblib.load("soh_model.pkl")
 
 st.set_page_config(page_title="Battery Safety Predictor", layout="centered")
 st.title("🔋 Lithium-ion Battery Safety & Health Prediction")
