@@ -1,91 +1,83 @@
 import streamlit as st
+import pandas as pd
 import numpy as np
-import joblib
+import pickle
 
-# ------------ Load Models ------------
-sei_model = joblib.load("sei_model.pkl")
-ir_model = joblib.load("ir_model.pkl")
-soh_model = joblib.load("soh_model.pkl")
+# Load trained models
+sei_model = pickle.load(open("sei_model.pkl", "rb"))
+ir_model = pickle.load(open("ir_model.pkl", "rb"))
+soh_model = pickle.load(open("soh_model.pkl", "rb"))
 
-# ------------ Page Settings ------------
-st.set_page_config(page_title="Battery Safety Checker", layout="centered")
-st.title("🔋 Battery Safety Check using CSI")
-st.write("Enter battery usage details to predict SEI, IR, SOH, and compute CSI with safety category.")
+st.set_page_config(page_title="Battery Safety Predictor", layout="centered")
+st.title("🔋 Lithium-ion Battery Safety & Health Prediction")
 
-# ------------ User Input ------------
-st.header("📥 Battery Input Parameters")
+st.markdown("Enter the battery details below. The app will predict SEI, IR, SOH and calculate CSI with safety categorization.")
 
+# Maps for encoding
+chemistry_map = {'LFP': 0, 'NMC': 1}
+charging_map = {'normal': 0, 'fast': 1, 'overnight': 2}
 
-current_voltage = st.number_input("Current Voltage (V)", value=3.7, step=0.01)
+# User Inputs
+st.header("📥 User Inputs")
 
-ambient_temp = st.number_input("Ambient Temperature (°C)", value=25.0, step=0.5)
-cycle_count = st.number_input("Charge Cycles Completed", value=300, step=1)
+cycle_count = st.number_input("Cycle Count", min_value=0, value=200)
+charge_rate = st.number_input("Charge Rate (C)", min_value=0.0, value=1.0)
+discharge_rate = st.number_input("Discharge Rate (C)", min_value=0.0, value=1.0)
+depth_of_discharge = st.slider("Depth of Discharge (%)", 0, 100, 80)
+storage_time = st.number_input("Storage Time (months)", min_value=0, value=6)
+battery_age = st.number_input("Battery Age (months)", min_value=0, value=12)
+ambient_temp = st.slider("Ambient Temperature (°C)", 15, 45, 25)
+current_voltage = st.slider("Current Voltage (V)", 3.2, 4.2, 3.7)
 
-charging_behavior_encoded = st.selectbox("Charging Behavior", ["Normal", "Fast", "Overnight"])
-chemistry_type_encoded = st.selectbox("Chemistry Type", ["LFP", "NMC"])
+charging_input = st.selectbox("Charging Behavior", list(charging_map.keys()))
+chemistry_input = st.selectbox("Chemistry Type", list(chemistry_map.keys()))
 
-# ------------ Feature Encoding ------------
-charging_map = {"Normal": 0, "Fast": 1, "Overnight": 2}
-chemistry_map = {"LFP": 0, "NMC": 1}
+# Encode categorical inputs
+charging_behavior_encoded = charging_map[charging_input]
+chemistry_type_encoded = chemistry_map[chemistry_input]
 
-input_features = np.array([[
-    current_voltage,
-    ambient_temp,
+# Create input DataFrame
+input_features = pd.DataFrame([[
     cycle_count,
-    charging_map[charging_behavior],
-    chemistry_map[chemistry_type]
-]])
+    charge_rate,
+    discharge_rate,
+    depth_of_discharge,
+    storage_time,
+    battery_age,
+    ambient_temp,
+    current_voltage,
+    chemistry_type_encoded,
+    charging_behavior_encoded
+]], columns=[
+    "cycle_count", "charge_rate", "discharge_rate",
+    "depth_of_discharge", "storage_time_months", "battery_age_months",
+    "ambient_temperature", "current_voltage",
+    "chemistry_type_encoded", "charging_behavior_encoded"
+])
 
-# ------------ Predictions ------------
-if st.button("🔍 Predict Safety"):
-
-    # Predict SEI and IR
+# Prediction logic
+if st.button("🔍 Predict Battery Health & Safety"):
     sei = sei_model.predict(input_features)[0]
     ir = ir_model.predict(input_features)[0]
-
-    # Now predict SOH using SEI, IR + selected features
-    soh_input = np.hstack((input_features, [sei, ir]))
-    soh = soh_model.predict([soh_input])[0]
+    soh = soh_model.predict(pd.DataFrame([[sei, ir]], columns=["SEI", "IR"]))[0]
 
     # Calculate CSI
-    csi = soh / (sei * ir) if sei * ir != 0 else 0
+    csi = ((1 - sei) * 0.4 + (110 - ir) / 110 * 0.3 + soh / 100 * 0.3)
 
-    # Categorize CSI
-    if csi > 0.9:
-        category = "✅ Safe"
-    elif csi > 0.7:
-        category = "⚠️ Moderate"
-    elif csi > 0.5:
-        category = "🟠 Warning"
+    # Categorize
+    if csi >= 0.8:
+        category = "Safe ✅"
+    elif csi >= 0.6:
+        category = "Moderate ⚠️"
+    elif csi >= 0.4:
+        category = "Warning ⚠️"
     else:
-        category = "🔴 Critical"
+        category = "Critical ❌"
 
-    # ------------ Output ------------
-    st.subheader("🧠 Model Predictions")
-    st.metric("Predicted SEI", f"{sei:.3f}")
-    st.metric("Predicted IR (mΩ)", f"{ir:.2f}")
-    st.metric("Predicted SOH (%)", f"{soh:.2f}")
-    st.metric("CSI Score", f"{csi:.4f}")
-    st.metric("Safety Category", category)
-
-    with st.expander("📊 Input Summary"):
-        st.write({
-            "Min Voltage": min_voltage,
-            "Max Voltage": max_voltage,
-            "Avg Voltage": avg_voltage,
-            "Battery Temp": temperature,
-            "Ambient Temp": ambient_temp,
-            "Charge Cycles": charge_cycles,
-            "Charging": charging_behavior,
-            "Chemistry": chemistry_type,
-            "SEI": round(sei, 3),
-            "IR": round(ir, 2),
-            "SOH": round(soh, 2),
-            "CSI": round(csi, 4),
-            "Category": category
-        })
-
-
-
-
-              
+    # Display
+    st.header("📊 Results")
+    st.markdown(f"**Predicted SEI:** `{sei:.3f}`")
+    st.markdown(f"**Predicted IR:** `{ir:.2f} mΩ`")
+    st.markdown(f"**Predicted SOH:** `{soh:.2f} %`")
+    st.markdown(f"**Calculated CSI:** `{csi:.3f}`")
+    st.markdown(f"### 🛡️ Safety Category: **{category}**")
