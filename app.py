@@ -46,14 +46,13 @@ input_features = pd.DataFrame([[
     ambient_temperature,
     storage_time_months,
     current_voltage,
-    ambient_temperature
+   
 ]], columns=[
     "cycle_count",	
     "depth_of_discharge",
     "battery_age_months",
     "chemistry_type_encoded",	
     "charging_behavior_encoded",
-    "ambient_temperature",
     "storage_time_months",
     "current_voltage",
     "ambient_temperature"
