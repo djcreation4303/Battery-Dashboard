@@ -139,7 +139,7 @@ if st.button("🔍 Predict Battery Health & Safety"):
 #csi = calculate_csi(sei_pred, ir_pred, soh_pred)  # Assuming this returns scalar
 
 # Now you can safely format:
-   st.markdown(f"**Predicted SEI:** `{sei_pred:.3f}`")
+    st.markdown(f"**Predicted SEI:** `{sei_pred:.3f}`")
    st.markdown(f"**Predicted IR:** `{ir_pred:.2f} mΩ`")
    st.markdown(f"**Predicted SOH:** `{soh_pred:.2f} %`")
 #st.markdown(f"**Calculated CSI:** `{csi:.3f}`")
