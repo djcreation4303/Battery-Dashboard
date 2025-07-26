@@ -58,13 +58,36 @@ input_features = pd.DataFrame([[
     "current_voltage"
 ])
 
+input_features_sei = input_features[[
+    "cycle_count",
+    "depth_of_discharge",
+    "storage_time_months",
+    "battery_age_months",
+    "current_voltage",
+    "chemistry_type_encoded",
+    "charging_behavior_encoded"
+]]
+
+input_features_ir = input_features[[
+    "cycle_count",
+    "depth_of_discharge",
+    "ambient_temperature",
+    "battery_age_months",
+    "chemistry_type_encoded",
+    "charging_behavior_encoded",
+    "current_voltage"
+]]
+
+
+
+
 # Prediction logic
 if st.button("🔍 Predict Battery Health & Safety"):
     input_features = input_features[sei_model.feature_names_in_]
 
 
-    sei_pred = sei_model.predict(input_features)[0]
-    ir_pred = ir_model.predict(input_features)[0]
+    sei_pred =  sei_model.predict(input_features_sei)
+    ir_pred = ir_model.predict(input_features_ir)
 
     soh_pred = soh_model.predict(
         pd.DataFrame([[sei_pred, ir_pred,battery_age_months,cycle_count,current_voltage,depth_of_discharge,chemistry_type_encoded]], columns=["SEI", "IR","battery_age_months","cycle_count","current_voltage","depth_of_discharge","chemistry_type_encoded"])
