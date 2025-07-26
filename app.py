@@ -70,7 +70,8 @@ if st.button("🔍 Predict Battery Health & Safety"):
     ir_pred = ir_model.predict(input_features)[0]
 
     soh_pred = soh_model.predict(
-        pd.DataFrame([[sei_pred, ir_pred]], columns=["SEI", "IR"])
+        pd.DataFrame([[sei_pred, ir_pred,battery_age_months,chemistry_input,current_voltage,cycle_count,depth_of_discharge]], columns=["SEI", "IR","battery_age_months","current_voltage","cycle_count","depth_of_discharge",
+    "chemistry_type_encoded"])
     )[0]
 
     if sei_pred <= 0.4:
