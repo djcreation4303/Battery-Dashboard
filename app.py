@@ -53,9 +53,9 @@ input_features = pd.DataFrame([[
     "battery_age_months",
     "chemistry_type_encoded",	
     "charging_behavior_encoded",
-    "storage_time_months",
-    "current_voltage",
     "ambient_temperature"
+    "storage_time_months",
+    "current_voltage"
 ])
 
 # Prediction logic
