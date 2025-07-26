@@ -136,10 +136,10 @@ if st.button("🔍 Predict Battery Health & Safety"):
     soh_pred = soh_model.predict(
         pd.DataFrame([[sei_pred, ir_pred,battery_age_months,cycle_count,current_voltage,depth_of_discharge,chemistry_type_encoded]], columns=["SEI","IR","battery_age_months","cycle_count","current_voltage","depth_of_discharge","chemistry_type_encoded"])
     )[0]
-csi = calculate_csi(sei_pred, ir_pred, soh_pred)  # Assuming this returns scalar
+#csi = calculate_csi(sei_pred, ir_pred, soh_pred)  # Assuming this returns scalar
 
 # Now you can safely format:
 st.markdown(f"**Predicted SEI:** `{sei_pred:.3f}`")
 st.markdown(f"**Predicted IR:** `{ir_pred:.2f} mΩ`")
 st.markdown(f"**Predicted SOH:** `{soh_pred:.2f} %`")
-st.markdown(f"**Calculated CSI:** `{csi:.3f}`")
+#st.markdown(f"**Calculated CSI:** `{csi:.3f}`")
