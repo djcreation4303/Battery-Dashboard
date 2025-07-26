@@ -83,43 +83,29 @@ input_features_ir = input_features[[
 
 # Prediction logic
 if st.button("🔍 Predict Battery Health & Safety"):
-    input_features = input_features[sei_model.feature_names_in_]
+    sei_pred = sei_model.predict(input_features_sei)[0]
+    ir_pred = ir_model.predict(input_features_ir)[0]
 
+    soh_input = pd.DataFrame([[sei_pred, ir_pred, battery_age_months, cycle_count, current_voltage, depth_of_discharge, chemistry_type_encoded]], 
+                             columns=["SEI", "IR", "battery_age_months", "cycle_count", "current_voltage", "depth_of_discharge", "chemistry_type_encoded"])
+    soh_pred = soh_model.predict(soh_input)[0]
 
-    sei_pred =  sei_model.predict(input_features_sei)
-    ir_pred = ir_model.predict(input_features_ir)
-
-    soh_pred = soh_model.predict(
-        pd.DataFrame([[sei_pred, ir_pred,battery_age_months,cycle_count,current_voltage,depth_of_discharge,chemistry_type_encoded]], columns=["SEI","IR","battery_age_months","cycle_count","current_voltage","depth_of_discharge","chemistry_type_encoded"])
-    )[0]
-
+    # SEI scoring
     if sei_pred <= 0.4:
-        # Very good SEI — reward positively
         sei_score = 1
     elif sei_pred <= 0.7:
-        # Medium SEI — scale down
-        sei_score = 1 - (sei - 0.4) / (0.7 - 0.4)
+        sei_score = 1 - (sei_pred - 0.4) / (0.7 - 0.4)
     else:
-         # Bad SEI — heavy penalty
-        sei_score = 0.2  # minimum safety score for SEI
+        sei_score = 0.2
 
-        
-   
-# Normalize IR and SOH
+    # Normalization
     ir_norm = (122 - ir_pred) / (122 - 63)
     soh_norm = (soh_pred - 50) / (100 - 50)
 
-# Final CSI (weighted)
+    # CSI calculation
     csi = 0.35 * sei_score + 0.30 * ir_norm + 0.35 * soh_norm
-    
-    # Calculate CSI
-    #csi = ((1 - sei_pred) * 0.4 + (122 - ir_pred) / 110 * 0.3 + soh_pred / 100 * 0.3)
-    #csi = ((1 - sei_pred) * 0.3 + (110 - ir_pred) / (110-40) * 0.3 + soh_pred / 100 * 0.4)
-    #csi = 0.3*sei_norm + 0.3*ir_norm + 0.4*soh_norm
-    
-    
 
-    # Categorize
+    # Category
     if csi >= 0.8:
         category = "Safe ✅"
     elif csi >= 0.6:
@@ -129,17 +115,8 @@ if st.button("🔍 Predict Battery Health & Safety"):
     else:
         category = "Critical ❌"
 
-    # Display
-    sei_pred =  sei_model.predict(input_features_sei)
-    ir_pred = ir_model.predict(input_features_ir)
-
-    soh_pred = soh_model.predict(
-        pd.DataFrame([[sei_pred, ir_pred,battery_age_months,cycle_count,current_voltage,depth_of_discharge,chemistry_type_encoded]], columns=["SEI","IR","battery_age_months","cycle_count","current_voltage","depth_of_discharge","chemistry_type_encoded"])
-    )[0]
-#csi = calculate_csi(sei_pred, ir_pred, soh_pred)  # Assuming this returns scalar
-
-# Now you can safely format:
+    # Display predictions
     st.markdown(f"**Predicted SEI:** `{sei_pred:.3f}`")
-   st.markdown(f"**Predicted IR:** `{ir_pred:.2f} mΩ`")
-   st.markdown(f"**Predicted SOH:** `{soh_pred:.2f} %`")
-#st.markdown(f"**Calculated CSI:** `{csi:.3f}`")
+    st.markdown(f"**Predicted IR:** `{ir_pred:.2f} mΩ`")
+    st.markdown(f"**Predicted SOH:** `{soh_pred:.2f} %`")
+    st.markdown(f"**Calculated CSI:** `{csi:.3f}` → **{category}**")
