@@ -15,7 +15,7 @@ st.markdown("Enter the battery details below. The app will predict SEI, IR, SOH 
 
 # Maps for encoding
 chemistry_map = {'LFP': 0, 'NMC': 1}
-charging_map = {'normal': 0, 'fast': 1, 'overnight': 2}
+charging_map = {'normal': 1, 'fast': 0, 'overnight': 2}
 
 # User Inputs
 st.header("📥 User Inputs")
