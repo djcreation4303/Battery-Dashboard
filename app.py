@@ -39,10 +39,7 @@ chemistry_type_encoded = chemistry_map[chemistry_input]
 # Create input DataFrame
 input_features = pd.DataFrame([[
     cycle_count,	
-    charge_rate,
-    discharge_rate,
     depth_of_discharge,
-    storage_time_months,
     battery_age_months,
     chemistry_type_encoded,	
     charging_behavior_encoded,
@@ -50,10 +47,7 @@ input_features = pd.DataFrame([[
     ambient_temperature
 ]], columns=[
     "cycle_count",	
-    "charge_rate",
-    "discharge_rate",
     "depth_of_discharge",
-    "storage_time_months",
     "battery_age_months",
     "chemistry_type_encoded",	
     "charging_behavior_encoded",
