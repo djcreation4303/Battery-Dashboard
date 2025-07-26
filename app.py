@@ -130,9 +130,13 @@ if st.button("🔍 Predict Battery Health & Safety"):
         category = "Critical ❌"
 
     # Display
-    st.header("📊 Results")
-    st.markdown(f"**Predicted SEI:** `{sei_pred:.3f}`")
-    st.markdown(f"**Predicted IR:** `{ir_pred:.2f} mΩ`")
-    st.markdown(f"**Predicted SOH:** `{soh_pred:.2f} %`")
-    st.markdown(f"**Calculated CSI:** `{csi:.3f}`")
-    st.markdown(f"### 🛡️ Safety Category: **{category}**")
+    sei_pred = sei_model.predict(input_features_sei)[0]
+ir_pred = ir_model.predict(input_features_ir)[0]
+soh_pred = soh_model.predict(input_features_soh)[0]
+csi = calculate_csi(sei_pred, ir_pred, soh_pred)  # Assuming this returns scalar
+
+# Now you can safely format:
+st.markdown(f"**Predicted SEI:** `{sei_pred:.3f}`")
+st.markdown(f"**Predicted IR:** `{ir_pred:.2f} mΩ`")
+st.markdown(f"**Predicted SOH:** `{soh_pred:.2f} %`")
+st.markdown(f"**Calculated CSI:** `{csi:.3f}`")
