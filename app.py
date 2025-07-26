@@ -130,9 +130,10 @@ if st.button("🔍 Predict Battery Health & Safety"):
         category = "Critical ❌"
 
     # Display
-    sei_pred = sei_model.predict(input_features_sei)[0]
-ir_pred = ir_model.predict(input_features_ir)[0]
-soh_pred = soh_model.predict(
+    sei_pred =  sei_model.predict(input_features_sei)
+    ir_pred = ir_model.predict(input_features_ir)
+
+    soh_pred = soh_model.predict(
         pd.DataFrame([[sei_pred, ir_pred,battery_age_months,cycle_count,current_voltage,depth_of_discharge,chemistry_type_encoded]], columns=["SEI","IR","battery_age_months","cycle_count","current_voltage","depth_of_discharge","chemistry_type_encoded"])
     )[0]
 csi = calculate_csi(sei_pred, ir_pred, soh_pred)  # Assuming this returns scalar
