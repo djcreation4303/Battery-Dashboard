@@ -37,6 +37,7 @@ current_measured = st.number_input("Current Measured (A)", min_value=0.0, max_va
 temperature_measured = st.number_input("Temperature (°C)", min_value=0.0, max_value=100.0, value=25.0)
 soc = st.slider("State of Charge (SoC) %", min_value=0, max_value=100, value=80)
 
+
 # === Prediction Trigger ===
 if st.button("🔍 Predict"):
 
@@ -45,6 +46,10 @@ if st.button("🔍 Predict"):
                                temperature_measured, soc, battery_id_encoded]],
                              columns=["cycle_number", "Voltage_measured", "Current_measured",
                                       "Temperature_measured", "SoC", "battery_id_encoded"])
+
+    st.write("Model expects these features:", sei_model.feature_names_in_)
+    st.write("You provided these features:", list(sei_input.columns))
+
     sei_pred = sei_model.predict(sei_input)[0]
 
     # === 2. IR Prediction ===
