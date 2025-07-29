@@ -4,9 +4,9 @@ import numpy as np
 import joblib
 
 # Load trained models
-sei_model = joblib.load("sei_model.pkl")
-ir_model = joblib.load("ir_model.pkl")
-soh_model = joblib.load("soh_model.pkl")
+sei_model = joblib.load("sei_model_comressed.pkl")
+ir_model = joblib.load("ir_model_comressed.pkl")
+soh_model = joblib.load("soh_model_comressed.pkl")
 
 st.set_page_config(page_title="🔋 Battery Safety Predictor", layout="centered")
 st.title("🔋 Lithium-ion Battery Safety & Health Predictor")
