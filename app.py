@@ -53,11 +53,11 @@ if st.button("🔍 Predict"):
     ir_pred = ir_model.predict(ir_input)[0]
 
     # === 3. SOH Prediction ===
-    soh_input = pd.DataFrame([[sei_pred, ir_pred, cycle_number, voltage_measured,
-                               current_measured, temperature_measured, soc]],
-                             columns=["SEI", "IR", "cycle_number", "Voltage_measured",
-                                      "Current_measured", "Temperature_measured", "SoC"])
+        # === 3. SOH Prediction ===
+    soh_input = pd.DataFrame([[cycle_number, sei_pred, ir_pred, battery_id_encoded]],
+                             columns=["cycle_number", "SEI_pred", "IR_pred", "battery_id_encoded"])
     soh_pred = soh_model.predict(soh_input)[0]
+
 
     # === 4. CSI Calculation ===
     sei_score = 1 - (sei_pred - 0.0657) / (0.425 - 0.0657)
