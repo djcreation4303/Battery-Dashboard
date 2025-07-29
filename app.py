@@ -4,7 +4,7 @@ import joblib
 import numpy as np
 
 # === Load Compressed Models ===
-sei_model = joblib.load("ir_model_comressed.pkl")
+sei_model = joblib.load("soh_model_comressed.pkl")
 ir_model = joblib.load("ir_model_comressed.pkl")
 soh_model = joblib.load("soh_model_comressed.pkl")
 
