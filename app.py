@@ -1,114 +1,90 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import joblib
+import numpy as np
 
-# Load trained models
+# Load models
 sei_model = joblib.load("sei_model_comressed.pkl")
 ir_model = joblib.load("ir_model_comressed.pkl")
 soh_model = joblib.load("soh_model_comressed.pkl")
 
-st.set_page_config(page_title="🔋 Battery Safety Predictor", layout="centered")
-st.title("🔋 Lithium-ion Battery Safety & Health Predictor")
-st.markdown("Enter battery details below. The app will predict SEI, IR, SOH and compute CSI with a safety classification.")
-
-# Battery ID mapping (for user-friendly selection)
+# Battery ID mapping
 battery_id_map = {
-    0: "B0005", 1: "B0006", 2: "B0007", 3: "B0018", 4: "B0025", 5: "B0026",
-    6: "B0027", 7: "B0028", 8: "B0029", 9: "B0030", 10: "B0031", 11: "B0032",
-    12: "B0033", 13: "B0034", 14: "B0036", 15: "B0038", 16: "B0039", 17: "B0040",
-    18: "B0042", 19: "B0043", 20: "B0044", 21: "B0046", 22: "B0047", 23: "B0048"
+    'B0005': 0, 'B0006': 1, 'B0007': 2, 'B0018': 3,
+    'B0025': 4, 'B0026': 5, 'B0027': 6, 'B0028': 7,
+    'B0029': 8, 'B0030': 9, 'B0031': 10, 'B0032': 11,
+    'B0033': 12, 'B0034': 13, 'B0036': 14, 'B0038': 15,
+    'B0039': 16, 'B0040': 17, 'B0042': 18, 'B0043': 19,
+    'B0044': 20, 'B0046': 21, 'B0047': 22, 'B0048': 23
 }
 
+# Streamlit setup
+st.set_page_config(page_title="Battery Safety Predictor", layout="centered")
+st.title("🔋 Lithium-ion Battery Safety & Health Prediction")
+st.markdown("Enter the battery details below to predict SEI, IR, SOH and assess safety (CSI).")
+
+# Battery ID dropdown
+battery_selection = st.selectbox("Select Battery ID", options=[f"{k} (→ {v})" for k, v in battery_id_map.items()])
+battery_id_encoded = battery_id_map[battery_selection.split()[0]]
+
 # User Inputs
-st.header("📥 Input Battery Parameters")
+st.header("📥 Battery Input Parameters")
 
-battery_id_input = st.selectbox(
-    "Select Battery ID (Label Encoded)", 
-    options=list(battery_id_map.keys()),
-    format_func=lambda x: f"{battery_id_map[x]} → {x}"
-)
+cycle_number = st.number_input("Cycle Number", min_value=0, value=150)
+voltage_measured = st.number_input("Voltage Measured (V)", min_value=3.0, max_value=4.5, value=3.7)
+current_measured = st.number_input("Current Measured (A)", min_value=0.0, max_value=5.0, value=1.0)
+temperature_measured = st.number_input("Temperature Measured (°C)", min_value=15.0, max_value=60.0, value=25.0)
+soc = st.slider("State of Charge (SoC) %", 0, 100, 80)
 
-cycle_count = st.number_input("Cycle Count", min_value=0, value=200)
-depth_of_discharge = st.slider("Depth of Discharge (%)", 0, 100, 80)
-storage_time_months = st.number_input("Storage Time (months)", min_value=0, value=6)
-battery_age_months = st.number_input("Battery Age (months)", min_value=0, value=12)
-ambient_temperature = st.slider("Ambient Temperature (°C)", 15, 45, 25)
-voltage = st.slider("Current Voltage (V)", 3.2, 4.2, 3.7)
+# Prediction Trigger
+if st.button("🔍 Predict Health and Safety"):
 
-# Create input DataFrame
-input_df = pd.DataFrame([[
-    battery_id_input,
-    cycle_count,
-    depth_of_discharge,
-    storage_time_months,
-    battery_age_months,
-    ambient_temperature,
-    voltage
-]], columns=[
-    "battery_id", "cycle_count", "depth_of_discharge",
-    "storage_time_months", "battery_age_months", 
-    "ambient_temperature", "voltage"
-])
+    # Prepare input for SEI model
+    sei_input = pd.DataFrame([[
+        cycle_number, voltage_measured, current_measured, temperature_measured, soc, battery_id_encoded
+    ]], columns=["cycle_number", "Voltage_measured", "Current_measured", "Temperature_measured", "SoC", "battery_id_encoded"])
 
-# Feature sets for each model
-features_sei = input_df[[
-    "battery_id", "cycle_count", "depth_of_discharge",
-    "storage_time_months", "battery_age_months", "voltage"
-]]
+    sei_pred = sei_model.predict(sei_input)[0]
 
-features_ir = input_df[[
-    "battery_id", "cycle_count", "depth_of_discharge",
-    "ambient_temperature", "battery_age_months", "voltage"
-]]
+    # Prepare input for IR model (using SEI output)
+    ir_input = sei_input.copy()
+    ir_input["SEI_pred"] = sei_pred
+    ir_pred = ir_model.predict(ir_input)[0]
 
-# Run Prediction
-if st.button("🔍 Predict Health & Safety"):
-    # Predict SEI and IR
-    sei_pred = sei_model.predict(features_sei)[0]
-    ir_pred = ir_model.predict(features_ir)[0]
-
-    # SOH prediction input
+    # Prepare input for SOH model (using SEI and IR)
     soh_input = pd.DataFrame([[
-        sei_pred, ir_pred, battery_age_months, cycle_count, voltage, depth_of_discharge, battery_id_input
-    ]], columns=[
-        "SEI", "IR", "battery_age_months", "cycle_count", "voltage", "depth_of_discharge", "battery_id"
-    ])
+        sei_pred, ir_pred, cycle_number, voltage_measured, current_measured, temperature_measured, soc
+    ]], columns=["SEI", "IR", "cycle_number", "Voltage_measured", "Current_measured", "Temperature_measured", "SoC"])
+
     soh_pred = soh_model.predict(soh_input)[0]
 
-    # --- CSI Calculation ---
-    # SEI Scoring
-    if sei_pred <= 0.4:
-        sei_score = 1
-    elif sei_pred <= 0.7:
-        sei_score = 1 - (sei_pred - 0.4) / 0.3
-    else:
-        sei_score = 0.2
+    # CSI Logic
+    # Normalize values
+    sei_score = 1 - (sei_pred - 0.0657) / (0.425 - 0.0657)
+    sei_score = max(0, min(sei_score, 1))
 
-    # Normalize IR (min=2.25, max=25.56)
-    ir_norm = (25.56 - ir_pred) / (25.56 - 2.25)
-    ir_norm = max(0, min(ir_norm, 1))  # clamp between 0 and 1
+    ir_score = 1 - (ir_pred - 2.25) / (25.56 - 2.25)
+    ir_score = max(0, min(ir_score, 1))
 
-    # Normalize SOH (min=70, max=122)
-    soh_norm = (soh_pred - 70) / (122 - 70)
-    soh_norm = max(0, min(soh_norm, 1))
+    soh_score = (soh_pred - 70) / (122 - 70)
+    soh_score = max(0, min(soh_score, 1))
 
-    # CSI formula
-    csi = 0.35 * sei_score + 0.30 * ir_norm + 0.35 * soh_norm
+    # Final CSI
+    csi = round(0.35 * sei_score + 0.30 * ir_score + 0.35 * soh_score, 3)
 
-    # Safety Category
+    # Category
     if csi >= 0.8:
-        category = "✅ Safe"
+        category = "Safe ✅"
     elif csi >= 0.6:
-        category = "⚠️ Moderate"
+        category = "Moderate ⚠️"
     elif csi >= 0.4:
-        category = "⚠️ Warning"
+        category = "Warning ⚠️"
     else:
-        category = "❌ Critical"
+        category = "Critical ❌"
 
-    # Output results
-    st.subheader("📊 Prediction Results")
-    st.markdown(f"🔬 **Predicted SEI Thickness:** `{sei_pred:.4f} nm`")
-    st.markdown(f"🔌 **Predicted Internal Resistance (IR):** `{ir_pred:.2f} mΩ`")
-    st.markdown(f"💚 **Predicted State of Health (SOH):** `{soh_pred:.2f} %`")
-    st.markdown(f"🛡️ **Calculated CSI:** `{csi:.3f}` → **{category}**")
+    # Display results
+    st.markdown(f"**Predicted SEI (nm):** `{sei_pred:.4f}`")
+    st.markdown(f"**Predicted IR (mΩ):** `{ir_pred:.2f}`")
+    st.markdown(f"**Predicted SOH (%):** `{soh_pred:.2f}`")
+    st.markdown(f"**Calculated CSI:** `{csi}` → **{category}**")
+
