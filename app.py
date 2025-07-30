@@ -2,11 +2,40 @@ import streamlit as st
 import pandas as pd
 import joblib
 import numpy as np
+import gdown
+
+def download_model(file_id,output_path):
+    url = f"https://drive.google.com/uc?id={1Yyt6YkfolXrr__iCFuc1MgN3CnAlIc-a}"
+    #url2 = f"https://drive.google.com/uc?id={1FwB_pcSEuu825rfzFgX1tsSfHoR1OmRY}"
+    #url3 = f"https://drive.google.com/uc?id={1vC_DEdk0gkmtTHdKjoKmCrWDxKmTfMBb}"
+    gdown.download(url,output_path,quiet=False)
+
+def download_model(file_id,output_path):
+    #url = f"https://drive.google.com/uc?id={1Yyt6YkfolXrr__iCFuc1MgN3CnAlIc-a}"
+    url = f"https://drive.google.com/uc?id={1FwB_pcSEuu825rfzFgX1tsSfHoR1OmRY}"
+    #url3 = f"https://drive.google.com/uc?id={1vC_DEdk0gkmtTHdKjoKmCrWDxKmTfMBb}"
+    gdown.download(url,output_path,quiet=False)
+def download_model(file_id,output_path):
+    #url = f"https://drive.google.com/uc?id={1Yyt6YkfolXrr__iCFuc1MgN3CnAlIc-a}"
+    #url2 = f"https://drive.google.com/uc?id={1FwB_pcSEuu825rfzFgX1tsSfHoR1OmRY}"
+    url = f"https://drive.google.com/uc?id={1vC_DEdk0gkmtTHdKjoKmCrWDxKmTfMBb}"
+    gdown.download(url,output_path,quiet=False)
+
+
+
+sei_file_id = "1Yyt6YkfolXrr__iCFuc1MgN3CnAlIc-a"
+ir_file_id = "1FwB_pcSEuu825rfzFgX1tsSfHoR1OmRY"
+soh_file_id = "1vC_DEdk0gkmtTHdKjoKmCrWDxKmTfMBb"
+
+download_model(sei_file_id,"sei_model_.pkl")
+download_model(ir_file_id,"ir_model_.pkl")
+download_model(soh_file_id,"soh_model_.pkl")
+
 
 # === Load Compressed Models ===
-sei_model = joblib.load("soh_model_comressed.pkl")
-ir_model = joblib.load("ir_model_comressed.pkl")
-soh_model = joblib.load("soh_model_comressed.pkl")
+sei_model = joblib.load("sei_model_.pkl")
+ir_model = joblib.load("ir_model_.pkl")
+soh_model = joblib.load("soh_model_.pkl")
 
 # === Battery ID Mapping ===
 battery_id_map = {
